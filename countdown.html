@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>倒數計時器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+TC:wght@400;700&display=swap');
+
+  :root {
+    --card-bg: #1a1a1a;
+    --card-text: #ffffff;
+    --label-color: #888888;
+    --accent: #6c63ff;
+    --divider: #444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Noto Sans TC', sans-serif;
+    padding: 32px 16px;
+  }
+
+  .countdown-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .tiles {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .tile-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tile {
+    position: relative;
+    width: 80px;
+    height: 90px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  /* Fold line */
+  .tile::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 1px;
+    background: var(--divider);
+    z-index: 2;
+  }
+
+  .tile-num {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 52px;
+    color: var(--card-text);
+    line-height: 1;
+    letter-spacing: 2px;
+    z-index: 1;
+    transition: transform 0.05s;
+  }
+
+  /* Flip animation */
+  .tile.flip .tile-num {
+    animation: flipNum 0.4s ease;
+  }
+
+  @keyframes flipNum {
+    0%   { transform: scaleY(1); opacity: 1; }
+    40%  { transform: scaleY(0); opacity: 0.3; }
+    60%  { transform: scaleY(0); opacity: 0.3; }
+    100% { transform: scaleY(1); opacity: 1; }
+  }
+
+  .tile-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--label-color);
+    text-transform: uppercase;
+  }
+
+  .divider {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 44px;
+    color: var(--card-bg);
+    line-height: 90px;
+    margin-bottom: 28px;
+    opacity: 0.5;
+    animation: blink 1s step-start infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.1; }
+  }
+
+  .promo-text {
+    font-size: 15px;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    .tile { width: 64px; height: 74px; }
+    .tile-num { font-size: 40px; }
+    .tiles { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="countdown-wrapper">
+  <div class="tiles">
+    <div class="tile-group">
+      <div class="tile" id="tile-days"><span class="tile-num" id="days">00</span></div>
+      <div class="tile-label">DAYS</div>
+    </div>
+
+    <div class="divider">:</div>
+
+    <div class="tile-group">
+      <div class="tile" id="tile-hours"><span class="tile-num" id="hours">00</span></div>
+      <div class="tile-label">HOURS</div>
+    </div>
+
+    <div class="divider">:</div>
+
+    <div class="tile-group">
+      <div class="tile" id="tile-mins"><span class="tile-num" id="mins">00</span></div>
+      <div class="tile-label">MINS</div>
+    </div>
+
+    <div class="divider">:</div>
+
+    <div class="tile-group">
+      <div class="tile" id="tile-secs"><span class="tile-num" id="secs">00</span></div>
+      <div class="tile-label">SECS</div>
+    </div>
+  </div>
+
+  <div class="promo-text">計劃即將調漲！下單享 85 折</div>
+</div>
+
+<script>
+  const TARGET = new Date('2026-04-12T23:59:00+08:00');
+
+  const pad = n => String(n).padStart(2, '0');
+
+  let prev = { d: null, h: null, m: null, s: null };
+
+  function flipTile(tileId) {
+    const tile = document.getElementById(tileId);
+    tile.classList.remove('flip');
+    void tile.offsetWidth; // reflow
+    tile.classList.add('flip');
+  }
+
+  function update() {
+    const now = new Date();
+    const diff = TARGET - now;
+
+    if (diff <= 0) {
+      ['days','hours','mins','secs'].forEach(id => document.getElementById(id).textContent = '00');
+      return;
+    }
+
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    if (d !== prev.d) { document.getElementById('days').textContent = pad(d); flipTile('tile-days'); prev.d = d; }
+    if (h !== prev.h) { document.getElementById('hours').textContent = pad(h); flipTile('tile-hours'); prev.h = h; }
+    if (m !== prev.m) { document.getElementById('mins').textContent = pad(m); flipTile('tile-mins'); prev.m = m; }
+    if (s !== prev.s) { document.getElementById('secs').textContent = pad(s); flipTile('tile-secs'); prev.s = s; }
+  }
+
+  update();
+  setInterval(update, 500);
+</script>
+</body>
+</html>
